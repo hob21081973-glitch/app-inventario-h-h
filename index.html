@@ -179,6 +179,7 @@
                     </h2>
                     
                     <form id="form-venta" onsubmit="procesarVentaGeneral(event)" class="space-y-4">
+                        <!-- 1. Selección de Producto y Cantidad -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Producto</label>
                             <div class="flex gap-2">
@@ -204,13 +205,7 @@
                             </div>
                         </div>
 
-                        <div class="border border-gray-200 rounded-lg p-3 bg-gray-50 space-y-2">
-                            <h4 class="text-xs font-bold text-gray-600 uppercase">Productos en esta Venta:</h4>
-                            <div id="lista-carrito" class="max-h-40 overflow-y-auto divide-y divide-gray-200 text-sm">
-                                <p class="text-center text-gray-400 py-2">No hay productos agregados.</p>
-                            </div>
-                        </div>
-
+                        <!-- 2. Tipo de Pago y Cliente -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-1">Tipo de Pago</label>
@@ -227,6 +222,15 @@
                             </div>
                         </div>
 
+                        <!-- 3. Carrito de Compras ubicado abajo de la selección de Cliente -->
+                        <div class="border border-gray-200 rounded-lg p-3 bg-gray-50 space-y-2">
+                            <h4 class="text-xs font-bold text-gray-600 uppercase">Productos en esta Venta:</h4>
+                            <div id="lista-carrito" class="max-h-40 overflow-y-auto divide-y divide-gray-200 text-sm">
+                                <p class="text-center text-gray-400 py-2">No hay productos agregados.</p>
+                            </div>
+                        </div>
+
+                        <!-- Total y Procesar Venta -->
                         <div class="bg-indigo-50 p-4 rounded-lg flex justify-between items-center">
                             <span class="font-semibold text-indigo-900">Total a Pagar:</span>
                             <span id="venta-total-texto" class="text-2xl font-bold text-indigo-700">L 0.00</span>
@@ -268,7 +272,6 @@
                     </div>
                 </div>
 
-                <!-- Historial de Ventas reubicado aquí -->
                 <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 space-y-4">
                     <h3 class="text-lg font-bold text-gray-800 flex items-center">
                         <i class="fa-solid fa-list text-indigo-600 mr-2"></i> Historial de Ventas y Tickets
@@ -803,31 +806,35 @@
             alert('Venta eliminada y stock revertido con éxito.');
         }
 
-        // --- GENERADOR DE TICKET WHATSAPP ---
+        // --- GENERADOR DE TICKET LIMPIO PARA WHATSAPP ---
         function enviarTicketWhatsApp(ventaId) {
             const v = ventas.find(item => item.id == ventaId);
             if (!v) return;
 
-            let detalleProductos = "";
+            let lineasProductos = [];
             if (v.items && Array.isArray(v.items)) {
-                detalleProductos = v.items.map(i => `• ${i.cantidad}x ${i.nombre} (L ${(i.precio * i.cantidad).toFixed(2)})`).join('\n');
+                v.items.forEach(i => {
+                    lineasProductos.push(`${i.cantidad}x ${i.nombre} ........ L ${(i.precio * i.cantidad).toFixed(2)}`);
+                });
             } else {
-                detalleProductos = `• ${v.producto}`;
+                lineasProductos.push(`1x ${v.producto} ........ L ${v.total.toFixed(2)}`);
             }
 
-            const mensaje = `*TICKET DE PEDIDO - APP INVENTARIO HOB*%0A` +
-                            `-----------------------------------%0A` +
-                            `📅 Fecha: ${v.fecha}%0A` +
-                            `👤 Cliente: ${v.cliente}%0A` +
-                            `💳 Tipo: ${v.tipo}%0A` +
-                            `-----------------------------------%0A` +
-                            `📦 *Detalle de Productos:*%0A${detalleProductos}%0A` +
-                            `-----------------------------------%0A` +
-                            `💰 *TOTAL A PAGAR: L ${v.total.toFixed(2)}*%0A` +
-                            `-----------------------------------%0A` +
-                            `¡Gracias por su preferencia! 🙏`;
+            const textoTicket = 
+`TICKET DE PEDIDO - APP INVENTARIO HOB
+------------------------------------
+Fecha: ${v.fecha}
+Cliente: ${v.cliente}
+Tipo: ${v.tipo}
+------------------------------------
+Cant. Producto               Valor
+${lineasProductos.join('\n')}
+------------------------------------
+TOTAL A PAGAR: L ${v.total.toFixed(2)}
+------------------------------------
+¡Gracias por su preferencia!`;
 
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`, '_blank');
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textoTicket)}`, '_blank');
         }
 
         function renderizarVentas() {
