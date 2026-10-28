@@ -8,14 +8,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js para los resúmenes gráficos -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .tabs-container {
             display: flex;
             width: 500%;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            touch-action: pan-y; /* Permite scroll vertical pero optimiza gestos horizontales */
+            touch-action: pan-y;
         }
         .tab-pane {
             width: 20%;
@@ -65,7 +63,6 @@
                         <h2 id="stock-form-titulo" class="text-xl font-bold text-gray-800 flex items-center">
                             <i class="fa-solid fa-box-open text-indigo-600 mr-2"></i> Stock de Productos
                         </h2>
-                        <!-- Icono Lupa para abrir buscador modal de stock -->
                         <button type="button" onclick="abrirModalBusquedaStock()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 p-2 rounded-lg transition" title="Buscar producto">
                             <i class="fa-solid fa-magnifying-glass text-lg"></i>
                         </button>
@@ -100,7 +97,6 @@
                     </form>
                 </div>
 
-                <!-- Lista de Productos -->
                 <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 space-y-4">
                     <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
                         <h3 class="text-lg font-bold text-gray-800">Productos Registrados (A-Z)</h3>
@@ -119,7 +115,6 @@
                         <h2 id="cliente-form-titulo" class="text-xl font-bold text-gray-800 flex items-center">
                             <i class="fa-solid fa-user-plus text-indigo-600 mr-2"></i> Registrar / Editar Cliente
                         </h2>
-                        <!-- Icono Lupa para abrir buscador modal de clientes -->
                         <button type="button" onclick="abrirModalBusquedaCliente()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 p-2 rounded-lg transition" title="Buscar cliente">
                             <i class="fa-solid fa-magnifying-glass text-lg"></i>
                         </button>
@@ -184,7 +179,6 @@
                     </h2>
                     
                     <form id="form-venta" onsubmit="procesarVentaGeneral(event)" class="space-y-4">
-                        <!-- Selección de Producto con Lupa -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Producto</label>
                             <div class="flex gap-2">
@@ -210,7 +204,6 @@
                             </div>
                         </div>
 
-                        <!-- Lista de productos agregados al carrito de la venta actual -->
                         <div class="border border-gray-200 rounded-lg p-3 bg-gray-50 space-y-2">
                             <h4 class="text-xs font-bold text-gray-600 uppercase">Productos en esta Venta:</h4>
                             <div id="lista-carrito" class="max-h-40 overflow-y-auto divide-y divide-gray-200 text-sm">
@@ -244,26 +237,6 @@
                         </button>
                     </form>
                 </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 space-y-4">
-                    <h3 class="text-lg font-bold text-gray-800">Historial de Ventas</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead>
-                                <tr class="bg-gray-100 text-gray-700 text-xs uppercase border-b">
-                                    <th class="py-3 px-4">Fecha</th>
-                                    <th class="py-3 px-4">Productos</th>
-                                    <th class="py-3 px-4">Cliente</th>
-                                    <th class="py-3 px-4">Tipo</th>
-                                    <th class="py-3 px-4">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabla-ventas" class="divide-y divide-gray-200">
-                                <!-- Dinámico -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
             </section>
 
             <!-- ================= 4. PESTAÑA CRÉDITOS ================= -->
@@ -295,600 +268,18 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 flex flex-col justify-center items-center">
-                        <h3 class="text-md font-bold text-gray-700 mb-4 self-start">Distribución de Stock por Producto</h3>
-                        <div class="w-full max-w-xs h-64">
-                            <canvas id="graficoStock"></canvas>
-                        </div>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-                        <h3 class="text-md font-bold text-gray-700 mb-4">Resumen General</h3>
-                        <p class="text-sm text-gray-600">Sistema listo para sincronización web completa mediante API REST / Google Apps Script.</p>
-                    </div>
-                </div>
-            </section>
-
-        </div>
-    </main>
-
-    <!-- ================= MODALES DE BÚSQUEDA CON LUPA ================= -->
-    <div id="modal-busqueda" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden justify-center items-center z-50 p-4">
-        <div class="bg-white p-6 rounded-xl shadow-xl max-w-md w-full space-y-4">
-            <h3 id="modal-titulo" class="text-lg font-bold text-gray-800">Buscar</h3>
-            <input type="text" id="modal-input-busqueda" onkeyup="filtrarResultadosModal()" placeholder="Escribe para buscar..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
-            <div id="modal-lista-resultados" class="max-h-60 overflow-y-auto divide-y divide-gray-100 border border-gray-200 rounded-lg p-2 bg-gray-50 text-sm">
-                <!-- Dinámico -->
-            </div>
-            <div class="flex justify-end pt-2">
-                <button type="button" onclick="cerrarModalBusqueda()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium transition">Cerrar</button>
-            </div>
-        </div>
-    </div>
-
-    <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-500 mt-auto">
-        App Inventario Hob &copy; 2026 - Gestión Integral de Productos, Clientes, Ventas y Créditos (L)
-    </footer>
-
-    <!-- LÓGICA JAVASCRIPT -->
-    <script>
-        let productos = JSON.parse(localStorage.getItem('hob_productos')) || [
-            { id: 1, name: 'BETADER GC 15g', price: 93.00, stock: 1 }
-        ];
-        let clientes = JSON.parse(localStorage.getItem('hob_clientes')) || [];
-        let ventas = JSON.parse(localStorage.getItem('hob_ventas')) || [];
-        let creditos = JSON.parse(localStorage.getItem('hob_creditos')) || [];
-
-        let carritoVenta = [];
-        let modoModalActual = '';
-        let chartStock = null;
-
-        // Variables para control de gestos táctiles (Swipe)
-        let touchStartX = 0;
-        let touchEndX = 0;
-        let pestanaActualIndex = 0;
-        const totalPestanas = 5;
-        const nombresPestanas = ['stock', 'clientes', 'ventas', 'creditos', 'reportes'];
-
-        window.onload = function() {
-            renderizarProductos();
-            renderizarClientes();
-            poblarSelectoresVenta();
-            renderizarVentas();
-            renderizarCreditos();
-            renderizarReportes();
-            inicializarGestosTactiles();
-        };
-
-        // --- GESTOS TÁCTILES PARA DESLIZAR PANTALLAS ---
-        function inicializarGestosTactiles() {
-            const slider = document.getElementById('tabs-slider');
-
-            slider.addEventListener('touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
-            }, {passive: true});
-
-            slider.addEventListener('touchend', (e) => {
-                touchEndX = e.changedTouches[0].screenX;
-                manejarSwipe();
-            }, {passive: true});
-        }
-
-        function manejarSwipe() {
-            const umbralSwipe = 50; // Mínimo de pixeles recorridos para considerarse swipe
-            if (touchEndX < touchStartX - umbralSwipe) {
-                // Deslizar a la izquierda -> Siguiente pestaña
-                if (pestanaActualIndex < totalPestanas - 1) {
-                    pestanaActualIndex++;
-                    cambiarPestana(nombresPestanas[pestanaActualIndex], pestanaActualIndex);
-                }
-            }
-            if (touchEndX > touchStartX + umbralSwipe) {
-                // Deslizar a la derecha -> Pestaña anterior
-                if (pestanaActualIndex > 0) {
-                    pestanaActualIndex--;
-                    cambiarPestana(nombresPestanas[pestanaActualIndex], pestanaActualIndex);
-                }
-            }
-        }
-
-        function cambiarPestana(pestana, index) {
-            pestanaActualIndex = index;
-            const slider = document.getElementById('tabs-slider');
-            slider.style.transform = `translateX(-${index * 20}%)`;
-
-            nombresPestanas.forEach((t, i) => {
-                const btn = document.getElementById(`btn-${t}`);
-                if (t === pestana) {
-                    btn.className = "px-3 py-2 rounded-md font-medium transition bg-indigo-900 text-white shadow";
-                } else {
-                    btn.className = "px-3 py-2 rounded-md font-medium transition text-indigo-100 hover:bg-indigo-600";
-                }
-            });
-
-            if (pestana === 'reportes') renderizarReportes();
-            if (pestana === 'creditos') renderizarCreditos();
-            if (pestana === 'ventas') poblarSelectoresVenta();
-        }
-
-        // --- MODAL DE BÚSQUEDA GENERAL ---
-        function abrirModalBusquedaStock() {
-            modoModalActual = 'stock';
-            document.getElementById('modal-titulo').textContent = "Buscar Producto (Editar/Eliminar)";
-            document.getElementById('modal-input-busqueda').value = '';
-            renderizarListaModal(productos);
-            document.getElementById('modal-busqueda').classList.remove('hidden');
-            document.getElementById('modal-busqueda').classList.add('flex');
-            document.getElementById('modal-input-busqueda').focus();
-        }
-
-        function abrirModalBusquedaCliente() {
-            modoModalActual = 'cliente';
-            document.getElementById('modal-titulo').textContent = "Buscar Cliente (Editar/Eliminar)";
-            document.getElementById('modal-input-busqueda').value = '';
-            renderizarListaModal(clientes);
-            document.getElementById('modal-busqueda').classList.remove('hidden');
-            document.getElementById('modal-busqueda').classList.add('flex');
-            document.getElementById('modal-input-busqueda').focus();
-        }
-
-        function abrirModalBusquedaVentaProducto() {
-            modoModalActual = 'venta-producto';
-            document.getElementById('modal-titulo').textContent = "Seleccionar Producto para Venta";
-            document.getElementById('modal-input-busqueda').value = '';
-            renderizarListaModal(productos);
-            document.getElementById('modal-busqueda').classList.remove('hidden');
-            document.getElementById('modal-busqueda').classList.add('flex');
-            document.getElementById('modal-input-busqueda').focus();
-        }
-
-        function cerrarModalBusqueda() {
-            document.getElementById('modal-busqueda').classList.remove('flex');
-            document.getElementById('modal-busqueda').classList.add('hidden');
-        }
-
-        function filtrarResultadosModal() {
-            const filtro = document.getElementById('modal-input-busqueda').value.toLowerCase();
-            if (modoModalActual === 'stock' || modoModalActual === 'venta-producto') {
-                const filtrados = productos.filter(p => p.name.toLowerCase().includes(filtro));
-                renderizarListaModal(filtrados);
-            } else if (modoModalActual === 'cliente') {
-                const filtrados = clientes.filter(c => c.nombre.toLowerCase().includes(filtro));
-                renderizarListaModal(filtrados);
-            }
-        }
-
-        function renderizarListaModal(lista) {
-            const contenedor = document.getElementById('modal-lista-resultados');
-            contenedor.innerHTML = '';
-
-            if (lista.length === 0) {
-                contenedor.innerHTML = `<p class="text-center text-gray-400 py-2">No se encontraron resultados.</p>`;
-                return;
-            }
-
-            lista.forEach(item => {
-                const div = document.createElement('div');
-                div.className = "flex justify-between items-center py-2 px-3 hover:bg-indigo-50 rounded cursor-pointer transition";
-                
-                if (modoModalActual === 'stock') {
-                    div.innerHTML = `<div><span class="font-semibold text-gray-800">${item.name}</span><span class="text-xs text-gray-500 block">Stock: ${item.stock} | L ${item.price.toFixed(2)}</span></div>`;
-                    div.onclick = () => { editarProducto(item.id); cerrarModalBusqueda(); };
-                } else if (modoModalActual === 'cliente') {
-                    div.innerHTML = `<div><span class="font-semibold text-gray-800">${item.nombre}</span><span class="text-xs text-gray-500 block">Tel: ${item.telefono || '-'}</span></div>`;
-                    div.onclick = () => { editarCliente(item.id); cerrarModalBusqueda(); };
-                } else if (modoModalActual === 'venta-producto') {
-                    div.innerHTML = `<div><span class="font-semibold text-gray-800">${item.name}</span><span class="text-xs text-gray-500 block">Stock: ${item.stock} | L ${item.price.toFixed(2)}</span></div>`;
-                    div.onclick = () => {
-                        document.getElementById('venta-producto').value = item.id;
-                        cerrarModalBusqueda();
-                    };
-                }
-                contenedor.appendChild(div);
-            });
-        }
-
-        // --- MÓDULO STOCK ---
-        function guardarProducto(e) {
-            e.preventDefault();
-            const id = document.getElementById('producto-id').value;
-            const name = document.getElementById('prod-nombre').value.trim();
-            const price = parseFloat(document.getElementById('prod-precio').value);
-            const stock = parseInt(document.getElementById('prod-stock').value);
-
-            if (id) {
-                const index = productos.findIndex(p => p.id == id);
-                if (index !== -1) productos[index] = { id: Number(id), name, price, stock };
-            } else {
-                productos.push({ id: Date.now(), name, price, stock });
-            }
-
-            productos.sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
-            localStorage.setItem('hob_productos', JSON.stringify(productos));
-            limpiarFormProducto();
-            renderizarProductos();
-            poblarSelectoresVenta();
-            alert('Producto guardado con éxito');
-        }
-
-        function limpiarFormProducto() {
-            document.getElementById('form-producto').reset();
-            document.getElementById('producto-id').value = '';
-            document.getElementById('stock-form-titulo').innerHTML = `<i class="fa-solid fa-box-open text-indigo-600 mr-2"></i> Stock de Productos`;
-            document.getElementById('btn-guardar-producto').textContent = "Guardar Producto";
-            document.getElementById('btn-cancelar-producto').classList.add('hidden');
-        }
-
-        function renderizarProductos() {
-            const contenedor = document.getElementById('contenedor-productos');
-            const filtro = document.getElementById('buscar-producto').value.toLowerCase();
-            contenedor.innerHTML = '';
-
-            const filtrados = productos.filter(p => p.name.toLowerCase().includes(filtro));
-            if (filtrados.length === 0) {
-                contenedor.innerHTML = `<p class="col-span-full text-center text-gray-400 py-4">No hay productos disponibles.</p>`;
-                return;
-            }
-
-            filtrados.forEach(p => {
-                const card = document.createElement('div');
-                card.className = "bg-gray-50 border border-gray-200 p-4 rounded-xl flex justify-between items-center shadow-xs hover:shadow-md transition";
-                card.innerHTML = `
-                    <div>
-                        <h4 class="font-bold text-gray-800">${p.name}</h4>
-                        <p class="text-sm text-gray-600">Stock: <span class="font-semibold text-indigo-600">${p.stock} unidades</span></p>
-                        <p class="text-xs text-gray-500">Precio: L ${p.price.toFixed(2)}</p>
-                    </div>
-                    <div class="flex space-x-2">
-                        <button onclick="editarProducto(${p.id})" class="text-indigo-600 hover:text-indigo-800 p-2"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="eliminarProducto(${p.id})" class="text-rose-600 hover:text-rose-800 p-2"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                `;
-                contenedor.appendChild(card);
-            });
-        }
-
-        function editarProducto(id) {
-            const p = productos.find(item => item.id == id);
-            if (!p) return;
-            document.getElementById('producto-id').value = p.id;
-            document.getElementById('prod-nombre').value = p.name;
-            document.getElementById('prod-precio').value = p.price;
-            document.getElementById('prod-stock').value = p.stock;
-
-            document.getElementById('stock-form-titulo').innerHTML = `<i class="fa-solid fa-pen text-indigo-600 mr-2"></i> Editar Producto`;
-            document.getElementById('btn-guardar-producto').textContent = "Actualizar Producto";
-            document.getElementById('btn-cancelar-producto').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function eliminarProducto(id) {
-            if (confirm('¿Deseas eliminar este producto del inventario?')) {
-                productos = productos.filter(p => p.id != id);
-                localStorage.setItem('hob_productos', JSON.stringify(productos));
-                renderizarProductos();
-                poblarSelectoresVenta();
-            }
-        }
-
-        // --- MÓDULO CLIENTES ---
-        function guardarCliente(e) {
-            e.preventDefault();
-            const id = document.getElementById('cliente-id').value;
-            const nombre = document.getElementById('cli-nombre').value.trim();
-            const telefono = document.getElementById('cli-telefono').value.trim();
-            const limite = parseFloat(document.getElementById('cli-limite').value) || 0;
-            const direccion = document.getElementById('cli-direccion').value.trim();
-
-            if (id) {
-                const idx = clientes.findIndex(c => c.id == id);
-                if (idx !== -1) clientes[idx] = { id: Number(id), nombre, telefono, limite, direccion };
-            } else {
-                clientes.push({ id: Date.now(), nombre, telefono, limite, direccion });
-            }
-
-            clientes.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
-            localStorage.setItem('hob_clientes', JSON.stringify(clientes));
-            limpiarFormCliente();
-            renderizarClientes();
-            poblarSelectoresVenta();
-            alert('Cliente registrado con éxito');
-        }
-
-        function limpiarFormCliente() {
-            document.getElementById('form-cliente').reset();
-            document.getElementById('cliente-id').value = '';
-            document.getElementById('btn-guardar-cliente').textContent = "Guardar Cliente";
-            document.getElementById('btn-cancelar-cliente').classList.add('hidden');
-        }
-
-        function renderizarClientes() {
-            const tbody = document.getElementById('tabla-clientes');
-            tbody.innerHTML = '';
-            clientes.forEach(c => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-gray-50 border-b";
-                tr.innerHTML = `
-                    <td class="py-3 px-4 font-semibold text-gray-800">${c.nombre}</td>
-                    <td class="py-3 px-4 text-gray-600">${c.telefono || '-'}</td>
-                    <td class="py-3 px-4 text-gray-600">${c.direccion || '-'}</td>
-                    <td class="py-3 px-4 font-bold text-indigo-600">L ${c.limite.toFixed(2)}</td>
-                    <td class="py-3 px-4 text-center space-x-2">
-                        <button onclick="editarCliente(${c.id})" class="text-indigo-600 hover:text-indigo-800"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="eliminarCliente(${c.id})" class="text-rose-600 hover:text-rose-800"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function editarCliente(id) {
-            const c = clientes.find(item => item.id == id);
-            if (!c) return;
-            document.getElementById('cliente-id').value = c.id;
-            document.getElementById('cli-nombre').value = c.nombre;
-            document.getElementById('cli-telefono').value = c.telefono;
-            document.getElementById('cli-limite').value = c.limite;
-            document.getElementById('cli-direccion').value = c.direccion;
-            document.getElementById('btn-guardar-cliente').textContent = "Actualizar Cliente";
-            document.getElementById('btn-cancelar-cliente').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function eliminarCliente(id) {
-            if (confirm('¿Eliminar este cliente?')) {
-                clientes = clientes.filter(c => c.id != id);
-                localStorage.setItem('hob_clientes', JSON.stringify(clientes));
-                renderizarClientes();
-                poblarSelectoresVenta();
-            }
-        }
-
-        // --- MÓDULO VENTAS & CARRITO ---
-        function poblarSelectoresVenta() {
-            const selectProd = document.getElementById('venta-producto');
-            const selectCli = document.getElementById('venta-cliente');
-
-            selectProd.innerHTML = productos.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-            selectCli.innerHTML = '<option value="">Cliente General (Contado)</option>' +
-                clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
-        }
-
-        function agregarAlCarrito() {
-            const prodId = document.getElementById('venta-producto').value;
-            const cant = parseInt(document.getElementById('venta-cantidad').value) || 0;
-            const prod = productos.find(p => p.id == prodId);
-
-            if (!prod || cant <= 0) {
-                alert('Selecciona un producto válido y cantidad mayor a 0.');
-                return;
-            }
-
-            if (prod.stock < cant) {
-                alert(`Stock insuficiente. Stock disponible: ${prod.stock}`);
-                return;
-            }
-
-            const existente = carritoVenta.find(item => item.productoId == prodId);
-            if (existente) {
-                if (prod.stock < (existente.cantidad + cant)) {
-                    alert('La cantidad total supera el stock disponible.');
-                    return;
-                }
-                existente.cantidad += cant;
-            } else {
-                carritoVenta.push({
-                    productoId: prod.id,
-                    nombre: prod.name,
-                    precio: prod.price,
-                    cantidad: cant
-                });
-            }
-
-            renderizarCarrito();
-        }
-
-        function renderizarCarrito() {
-            const contenedor = document.getElementById('lista-carrito');
-            contenedor.innerHTML = '';
-
-            if (carritoVenta.length === 0) {
-                contenedor.innerHTML = `<p class="text-center text-gray-400 py-2">No hay productos agregados.</p>`;
-                document.getElementById('venta-total-texto').textContent = 'L 0.00';
-                return;
-            }
-
-            let totalGeneral = 0;
-            carritoVenta.forEach((item, index) => {
-                const subtotal = item.precio * item.cantidad;
-                totalGeneral += subtotal;
-
-                const div = document.createElement('div');
-                div.className = "flex justify-between items-center py-1.5 px-2";
-                div.innerHTML = `
-                    <div>
-                        <span class="font-medium text-gray-800">${item.nombre}</span>
-                        <span class="text-xs text-gray-500 block">${item.cantidad} x L ${item.precio.toFixed(2)} = L ${subtotal.toFixed(2)}</span>
-                    </div>
-                    <button type="button" onclick="eliminarDelCarrito(${index})" class="text-rose-600 hover:text-rose-800 text-sm"><i class="fa-solid fa-trash"></i></button>
-                `;
-                contenedor.appendChild(div);
-            });
-
-            document.getElementById('venta-total-texto').textContent = `L ${totalGeneral.toFixed(2)}`;
-        }
-
-        function eliminarDelCarrito(index) {
-            carritoVenta.splice(index, 1);
-            renderizarCarrito();
-        }
-
-        function toggleClienteVenta() {
-            const tipo = document.getElementById('venta-tipo').value;
-            const selectCli = document.getElementById('venta-cliente');
-            if (tipo === 'CREDITO') {
-                selectCli.setAttribute('required', 'true');
-            } else {
-                selectCli.removeAttribute('required');
-            }
-        }
-
-        function procesarVentaGeneral(e) {
-            e.preventDefault();
-            if (carritoVenta.length === 0) {
-                alert('Agrega al menos un producto al carrito para procesar la venta.');
-                return;
-            }
-
-            const tipo = document.getElementById('venta-tipo').value;
-            const cliId = document.getElementById('venta-cliente').value;
-            const cli = clientes.find(c => c.id == cliId);
-
-            if (tipo === 'CREDITO' && !cliId) {
-                alert('Debes seleccionar un cliente para ventas a crédito.');
-                return;
-            }
-
-            let totalVenta = 0;
-            let nombresProductosStr = carritoVenta.map(i => `${i.cantidad}x ${i.nombre}`).join(', ');
-
-            // Descontar stock y calcular total
-            for (let item of carritoVenta) {
-                const prod = productos.find(p => p.id == item.productoId);
-                if (!prod || prod.stock < item.cantidad) {
-                    alert(`El producto ${item.nombre} ya no cuenta con suficiente stock.`);
-                    return;
-                }
-                prod.stock -= item.cantidad;
-                totalVenta += item.precio * item.cantidad;
-            }
-
-            localStorage.setItem('hob_productos', JSON.stringify(productos));
-
-            const nuevaVenta = {
-                id: Date.now(),
-                fecha: new Date().toISOString().split('T')[0],
-                producto: nombresProductosStr,
-                cliente: cli ? cli.nombre : 'Cliente General',
-                tipo,
-                total: totalVenta
-            };
-
-            ventas.push(nuevaVenta);
-            localStorage.setItem('hob_ventas', JSON.stringify(ventas));
-
-            if (tipo === 'CREDITO' && cli) {
-                const credIdx = creditos.findIndex(cr => cr.clienteId == cli.id);
-                if (credIdx !== -1) {
-                    creditos[credIdx].saldo += totalVenta;
-                } else {
-                    creditos.push({ clienteId: cli.id, clienteNombre: cli.nombre, saldo: totalVenta });
-                }
-                localStorage.setItem('hob_creditos', JSON.stringify(creditos));
-            }
-
-            // Limpiar carrito y formulario
-            carritoVenta = [];
-            renderizarCarrito();
-            document.getElementById('form-venta').reset();
-            poblarSelectoresVenta();
-
-            renderizarProductos();
-            renderizarVentas();
-            renderizarCreditos();
-            alert('¡Venta procesada exitosamente!');
-        }
-
-        function renderizarVentas() {
-            const tbody = document.getElementById('tabla-ventas');
-            tbody.innerHTML = '';
-            ventas.slice().reverse().forEach(v => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-gray-50 border-b";
-                tr.innerHTML = `
-                    <td class="py-3 px-4 text-gray-600">${v.fecha}</td>
-                    <td class="py-3 px-4 font-semibold text-gray-800">${v.producto}</td>
-                    <td class="py-3 px-4 text-gray-600">${v.cliente}</td>
-                    <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs font-bold ${v.tipo === 'CONTADO' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${v.tipo}</span></td>
-                    <td class="py-3 px-4 font-bold text-indigo-600">L ${v.total.toFixed(2)}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // --- MÓDULO CRÉDITOS ---
-        function renderizarCreditos() {
-            const contenedor = document.getElementById('contenedor-creditos');
-            contenedor.innerHTML = '';
-
-            if (creditos.length === 0) {
-                contenedor.innerHTML = `<p class="col-span-full text-center text-gray-400 py-4">No hay cuentas por cobrar activas.</p>`;
-                return;
-            }
-
-            creditos.forEach(cr => {
-                const card = document.createElement('div');
-                card.className = "bg-gray-50 border border-gray-200 p-4 rounded-xl space-y-3 shadow-xs";
-                card.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <h4 class="font-bold text-gray-800">${cr.clienteNombre}</h4>
-                        <span class="text-xs font-semibold px-2 py-1 bg-amber-100 text-amber-800 rounded-full">Pendiente</span>
-                    </div>
-                    <p class="text-sm text-gray-600">Saldo Pendiente: <span class="text-lg font-bold text-rose-600">L ${cr.saldo.toFixed(2)}</span></p>
-                    <button onclick="abonarCredito(${cr.clienteId})" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-1.5 rounded-lg text-sm transition">
-                        Registrar Abono
-                    </button>
-                `;
-                contenedor.appendChild(card);
-            });
-        }
-
-        function abonarCredito(clienteId) {
-            const cr = creditos.find(c => c.clienteId == clienteId);
-            if (!cr) return;
-            const monto = parseFloat(prompt(`Saldo actual: L ${cr.saldo.toFixed(2)}\nIngrese el monto del abono (L):`));
-            if (monto && monto > 0) {
-                cr.saldo -= monto;
-                if (cr.saldo <= 0) {
-                    creditos = creditos.filter(c => c.clienteId != clienteId);
-                    alert('¡Crédito liquidado en su totalidad!');
-                } else {
-                    alert(`Abono realizado. Nuevo saldo: L ${cr.saldo.toFixed(2)}`);
-                }
-                localStorage.setItem('hob_creditos', JSON.stringify(creditos));
-                renderizarCreditos();
-                renderizarReportes();
-            }
-        }
-
-        // --- MÓDULO REPORTES ---
-        function renderizarReportes() {
-            const totalInv = productos.reduce((acc, p) => acc + (p.price * p.stock), 0);
-            const totalVen = ventas.reduce((acc, v) => acc + v.total, 0);
-            const totalCred = creditos.reduce((acc, c) => acc + c.saldo, 0);
-
-            document.getElementById('rep-total-inventario').textContent = `L ${totalInv.toFixed(2)}`;
-            document.getElementById('rep-total-ventas').textContent = `L ${totalVen.toFixed(2)}`;
-            document.getElementById('rep-total-creditos').textContent = `L ${totalCred.toFixed(2)}`;
-
-            const ctx = document.getElementById('graficoStock').getContext('2d');
-            if (chartStock) chartStock.destroy();
-
-            chartStock = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: productos.map(p => p.name),
-                    datasets: [{
-                        data: productos.map(p => p.stock),
-                        backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-        }
-    </script>
-</body>
-</html>
+                <!-- Historial de Ventas reubicado aquí -->
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 space-y-4">
+                    <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                        <i class="fa-solid fa-list text-indigo-600 mr-2"></i> Historial de Ventas y Tickets
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-700 text-xs uppercase border-b">
+                                    <th class="py-3 px-4">Fecha</th>
+                                    <th class="py-3 px-4">Productos</th>
+                                    <th class="py-3 px-4">Cliente</th>
+                                    <th class="py-3 px-4">Tipo</th>
+                                    <th class="py-3 px-4">Total</th>
+                             
