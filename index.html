@@ -71,7 +71,7 @@
                         <input type="hidden" id="producto-id">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre del Producto</label>
-                            <input type="text" id="prod-nombre" required placeholder="Ej. BETADER GC 15g" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <input type="text" id="prod-nombre" required placeholder="EJ. BETADER GC 15G" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none uppercase">
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
@@ -100,7 +100,7 @@
                 <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 space-y-4">
                     <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
                         <h3 class="text-lg font-bold text-gray-800">Productos Registrados (A-Z)</h3>
-                        <input type="text" id="buscar-producto" onkeyup="renderizarProductos()" placeholder="Buscar producto..." class="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <input type="text" id="buscar-producto" onkeyup="renderizarProductos()" placeholder="Buscar producto..." class="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none uppercase">
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="contenedor-productos">
                         <!-- Dinámico -->
@@ -123,7 +123,7 @@
                         <input type="hidden" id="cliente-id">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre Completo</label>
-                            <input type="text" id="cli-nombre" required placeholder="Nombre del cliente" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <input type="text" id="cli-nombre" required placeholder="NOMBRE DEL CLIENTE" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none uppercase">
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
@@ -137,7 +137,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Dirección</label>
-                            <input type="text" id="cli-direccion" placeholder="Dirección del cliente" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <input type="text" id="cli-direccion" placeholder="DIRECCIÓN DEL CLIENTE" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none uppercase">
                         </div>
                         <div class="flex items-center space-x-3 pt-2">
                             <button type="submit" id="btn-guardar-cliente" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg shadow transition">
@@ -179,12 +179,11 @@
                     </h2>
                     
                     <form id="form-venta" onsubmit="procesarVentaGeneral(event)" class="space-y-4">
-                        <!-- 1. Selección de Producto -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Producto</label>
                             <div class="flex gap-2">
                                 <select id="venta-producto" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
-                                    <!-- Dinámico (Solo Nombre) -->
+                                    <!-- Dinámico -->
                                 </select>
                                 <button type="button" onclick="abrirModalBusquedaVentaProducto()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-2 rounded-lg border border-indigo-200 text-sm font-medium transition flex items-center gap-1 shrink-0" title="Buscar producto con lupa">
                                     <i class="fa-solid fa-magnifying-glass"></i>
@@ -192,7 +191,6 @@
                             </div>
                         </div>
 
-                        <!-- 2. Cantidad, Tipo de Pago y Cliente -->
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-1">Cantidad</label>
@@ -201,26 +199,24 @@
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-1">Tipo de Pago</label>
                                 <select id="venta-tipo" onchange="toggleClienteVenta()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
-                                    <option value="CONTADO">Contado</option>
-                                    <option value="CREDITO">Crédito</option>
+                                    <option value="CONTADO">CONTADO</option>
+                                    <option value="CREDITO">CRÉDITO</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-1">Cliente</label>
                                 <select id="venta-cliente" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
-                                    <option value="">General (Contado)</option>
+                                    <option value="">GENERAL (CONTADO)</option>
                                 </select>
                             </div>
                         </div>
 
-                        <!-- 3. Botón "Agregar al Carrito" reubicado aquí -->
                         <div>
                             <button type="button" onclick="agregarAlCarrito()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg shadow transition flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-cart-plus"></i> Agregar al Carrito
                             </button>
                         </div>
 
-                        <!-- 4. Carrito de Compras -->
                         <div class="border border-gray-200 rounded-lg p-3 bg-gray-50 space-y-2">
                             <h4 class="text-xs font-bold text-gray-600 uppercase">Productos en esta Venta:</h4>
                             <div id="lista-carrito" class="max-h-40 overflow-y-auto divide-y divide-gray-200 text-sm">
@@ -228,7 +224,6 @@
                             </div>
                         </div>
 
-                        <!-- 5. Total y Procesar Venta -->
                         <div class="bg-indigo-50 p-4 rounded-lg flex justify-between items-center">
                             <span class="font-semibold text-indigo-900">Total a Pagar:</span>
                             <span id="venta-total-texto" class="text-2xl font-bold text-indigo-700">L 0.00</span>
@@ -301,7 +296,7 @@
     <div id="modal-busqueda" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden justify-center items-center z-50 p-4">
         <div class="bg-white p-6 rounded-xl shadow-xl max-w-md w-full space-y-4">
             <h3 id="modal-titulo" class="text-lg font-bold text-gray-800">Buscar</h3>
-            <input type="text" id="modal-input-busqueda" onkeyup="filtrarResultadosModal()" placeholder="Escribe para buscar..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
+            <input type="text" id="modal-input-busqueda" onkeyup="filtrarResultadosModal()" placeholder="ESCRIBE PARA BUSCAR..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm uppercase">
             <div id="modal-lista-resultados" class="max-h-60 overflow-y-auto divide-y divide-gray-100 border border-gray-200 rounded-lg p-2 bg-gray-50 text-sm">
                 <!-- Dinámico -->
             </div>
@@ -318,7 +313,7 @@
     <!-- LÓGICA JAVASCRIPT -->
     <script>
         let productos = JSON.parse(localStorage.getItem('hob_productos')) || [
-            { id: 1, name: 'BETADER GC 15g', price: 93.00, stock: 1 }
+            { id: 1, name: 'BETADER GC 15G', price: 93.00, stock: 1 }
         ];
         let clientes = JSON.parse(localStorage.getItem('hob_clientes')) || [];
         let ventas = JSON.parse(localStorage.getItem('hob_ventas')) || [];
@@ -343,6 +338,7 @@
             inicializarGestosTactiles();
         };
 
+        // --- GESTOS TÁCTILES PARA DESLIZAR PANTALLAS ---
         function inicializarGestosTactiles() {
             const slider = document.getElementById('tabs-slider');
             slider.addEventListener('touchstart', (e) => {
@@ -393,7 +389,7 @@
         // --- MODALES DE BÚSQUEDA ---
         function abrirModalBusquedaStock() {
             modoModalActual = 'stock';
-            document.getElementById('modal-titulo').textContent = "Buscar Producto (Editar/Eliminar)";
+            document.getElementById('modal-titulo').textContent = "BUSCAR PRODUCTO (EDITAR/ELIMINAR)";
             document.getElementById('modal-input-busqueda').value = '';
             renderizarListaModal(productos);
             document.getElementById('modal-busqueda').classList.remove('hidden');
@@ -403,7 +399,7 @@
 
         function abrirModalBusquedaCliente() {
             modoModalActual = 'cliente';
-            document.getElementById('modal-titulo').textContent = "Buscar Cliente (Editar/Eliminar)";
+            document.getElementById('modal-titulo').textContent = "BUSCAR CLIENTE (EDITAR/ELIMINAR)";
             document.getElementById('modal-input-busqueda').value = '';
             renderizarListaModal(clientes);
             document.getElementById('modal-busqueda').classList.remove('hidden');
@@ -413,7 +409,7 @@
 
         function abrirModalBusquedaVentaProducto() {
             modoModalActual = 'venta-producto';
-            document.getElementById('modal-titulo').textContent = "Seleccionar Producto para Venta";
+            document.getElementById('modal-titulo').textContent = "SELECCIONAR PRODUCTO PARA VENTA";
             document.getElementById('modal-input-busqueda').value = '';
             renderizarListaModal(productos);
             document.getElementById('modal-busqueda').classList.remove('hidden');
@@ -463,7 +459,7 @@
         function guardarProducto(e) {
             e.preventDefault();
             const id = document.getElementById('producto-id').value;
-            const name = document.getElementById('prod-nombre').value.trim();
+            const name = document.getElementById('prod-nombre').value.trim().toUpperCase();
             const price = parseFloat(document.getElementById('prod-precio').value);
             const stock = parseInt(document.getElementById('prod-stock').value);
 
@@ -479,7 +475,7 @@
             limpiarFormProducto();
             renderizarProductos();
             poblarSelectoresVenta();
-            alert('Producto guardado con éxito');
+            alert('¡Producto guardado con éxito!');
         }
 
         function limpiarFormProducto() {
@@ -543,10 +539,10 @@
         function guardarCliente(e) {
             e.preventDefault();
             const id = document.getElementById('cliente-id').value;
-            const nombre = document.getElementById('cli-nombre').value.trim();
+            const nombre = document.getElementById('cli-nombre').value.trim().toUpperCase();
             const telefono = document.getElementById('cli-telefono').value.trim();
             const limite = parseFloat(document.getElementById('cli-limite').value) || 0;
-            const direccion = document.getElementById('cli-direccion').value.trim();
+            const direccion = document.getElementById('cli-direccion').value.trim().toUpperCase();
 
             if (id) {
                 const idx = clientes.findIndex(c => c.id == id);
@@ -560,7 +556,7 @@
             limpiarFormCliente();
             renderizarClientes();
             poblarSelectoresVenta();
-            alert('Cliente registrado con éxito');
+            alert('¡Cliente registrado con éxito!');
         }
 
         function limpiarFormCliente() {
@@ -617,7 +613,7 @@
             const selectProd = document.getElementById('venta-producto');
             const selectCli = document.getElementById('venta-cliente');
             selectProd.innerHTML = productos.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-            selectCli.innerHTML = '<option value="">Cliente General (Contado)</option>' +
+            selectCli.innerHTML = '<option value="">GENERAL (CONTADO)</option>' +
                 clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
         }
 
@@ -728,7 +724,7 @@
                 id: Date.now(),
                 fecha: new Date().toISOString().split('T')[0],
                 items: [...carritoVenta],
-                cliente: cli ? cli.nombre : 'Cliente General',
+                cliente: cli ? cli.nombre : 'GENERAL',
                 tipo,
                 total: totalVenta
             };
@@ -767,7 +763,6 @@
             if (ventaIndex === -1) return;
             const venta = ventas[ventaIndex];
 
-            // 1. Revertir Stock
             if (venta.items && Array.isArray(venta.items)) {
                 venta.items.forEach(item => {
                     const prod = productos.find(p => p.id == item.productoId);
@@ -778,7 +773,6 @@
                 localStorage.setItem('hob_productos', JSON.stringify(productos));
             }
 
-            // 2. Revertir Crédito si aplica
             if (venta.tipo === 'CREDITO') {
                 const cli = clientes.find(c => c.nombre === venta.cliente);
                 if (cli) {
@@ -793,7 +787,6 @@
                 }
             }
 
-            // 3. Eliminar del arreglo de ventas
             ventas.splice(ventaIndex, 1);
             localStorage.setItem('hob_ventas', JSON.stringify(ventas));
 
@@ -812,25 +805,25 @@
             let lineasProductos = [];
             if (v.items && Array.isArray(v.items)) {
                 v.items.forEach(i => {
-                    lineasProductos.push(`${i.cantidad}x ${i.nombre} ........ L ${(i.precio * i.cantidad).toFixed(2)}`);
+                    lineasProductos.push(`${i.cantidad}X ${i.nombre} ........ L ${(i.precio * i.cantidad).toFixed(2)}`);
                 });
             } else {
-                lineasProductos.push(`1x ${v.producto} ........ L ${v.total.toFixed(2)}`);
+                lineasProductos.push(`1X ${v.producto} ........ L ${v.total.toFixed(2)}`);
             }
 
             const textoTicket = 
 `TICKET DE PEDIDO - APP INVENTARIO HOB
 ------------------------------------
-Fecha: ${v.fecha}
-Cliente: ${v.cliente}
-Tipo: ${v.tipo}
+FECHA: ${v.fecha}
+CLIENTE: ${v.cliente}
+TIPO: ${v.tipo}
 ------------------------------------
-Cant. Producto               Valor
+CANT. PRODUCTO               VALOR
 ${lineasProductos.join('\n')}
 ------------------------------------
 TOTAL A PAGAR: L ${v.total.toFixed(2)}
 ------------------------------------
-¡Gracias por su preferencia!`;
+¡GRACIAS POR SU PREFERENCIA!`;
 
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textoTicket)}`, '_blank');
         }
@@ -847,7 +840,7 @@ TOTAL A PAGAR: L ${v.total.toFixed(2)}
             ventas.slice().reverse().forEach(v => {
                 let productosTexto = "";
                 if (v.items && Array.isArray(v.items)) {
-                    productosTexto = v.items.map(i => `${i.cantidad}x ${i.nombre}`).join(', ');
+                    productosTexto = v.items.map(i => `${i.cantidad}X ${i.nombre}`).join(', ');
                 } else {
                     productosTexto = v.producto;
                 }
@@ -888,7 +881,7 @@ TOTAL A PAGAR: L ${v.total.toFixed(2)}
                 card.innerHTML = `
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-gray-800">${cr.clienteNombre}</h4>
-                        <span class="text-xs font-semibold px-2 py-1 bg-amber-100 text-amber-800 rounded-full">Pendiente</span>
+                        <span class="text-xs font-semibold px-2 py-1 bg-amber-100 text-amber-800 rounded-full">PENDIENTE</span>
                     </div>
                     <p class="text-sm text-gray-600">Saldo Pendiente: <span class="text-lg font-bold text-rose-600">L ${cr.saldo.toFixed(2)}</span></p>
                     <button onclick="abonarCredito(${cr.clienteId})" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-1.5 rounded-lg text-sm transition">
