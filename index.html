@@ -13,7 +13,6 @@
             display: flex;
             width: 500%;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            touch-action: pan-y;
         }
         .tab-pane {
             width: 20%;
@@ -322,12 +321,6 @@
         let carritoVenta = [];
         let modoModalActual = '';
 
-        let touchStartX = 0;
-        let touchEndX = 0;
-        let pestanaActualIndex = 0;
-        const totalPestanas = 5;
-        const nombresPestanas = ['stock', 'clientes', 'ventas', 'creditos', 'reportes'];
-
         window.onload = function() {
             renderizarProductos();
             renderizarClientes();
@@ -335,43 +328,13 @@
             renderizarVentas();
             renderizarCreditos();
             renderizarReportes();
-            inicializarGestosTactiles();
         };
 
-        // --- GESTOS TÁCTILES PARA DESLIZAR PANTALLAS ---
-        function inicializarGestosTactiles() {
-            const slider = document.getElementById('tabs-slider');
-            slider.addEventListener('touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
-            }, {passive: true});
-
-            slider.addEventListener('touchend', (e) => {
-                touchEndX = e.changedTouches[0].screenX;
-                manejarSwipe();
-            }, {passive: true});
-        }
-
-        function manejarSwipe() {
-            const umbralSwipe = 50;
-            if (touchEndX < touchStartX - umbralSwipe) {
-                if (pestanaActualIndex < totalPestanas - 1) {
-                    pestanaActualIndex++;
-                    cambiarPestana(nombresPestanas[pestanaActualIndex], pestanaActualIndex);
-                }
-            }
-            if (touchEndX > touchStartX + umbralSwipe) {
-                if (pestanaActualIndex > 0) {
-                    pestanaActualIndex--;
-                    cambiarPestana(nombresPestanas[pestanaActualIndex], pestanaActualIndex);
-                }
-            }
-        }
-
         function cambiarPestana(pestana, index) {
-            pestanaActualIndex = index;
             const slider = document.getElementById('tabs-slider');
             slider.style.transform = `translateX(-${index * 20}%)`;
 
+            const nombresPestanas = ['stock', 'clientes', 'ventas', 'creditos', 'reportes'];
             nombresPestanas.forEach((t) => {
                 const btn = document.getElementById(`btn-${t}`);
                 if (t === pestana) {
