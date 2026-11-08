@@ -8,6 +8,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Librería de Escáner de Código de Barras -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <style>
         .tabs-container {
             display: flex;
@@ -18,6 +20,12 @@
             width: 20%;
             flex-shrink: 0;
             padding: 0 4px;
+        }
+        /* Contenedor del video del escáner */
+        #lector-camara video {
+            width: 100% !important;
+            height: auto !important;
+            border-radius: 0.5rem;
         }
     </style>
 </head>
@@ -70,7 +78,16 @@
                         <input type="hidden" id="producto-id">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre del Producto</label>
-                            <input type="text" id="prod-nombre" required placeholder="EJ. BETADER GC 15G" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none uppercase">
+                            <input type="text" id="prod-nombre" required placeholder="producto" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Código de Barra (Opcional)</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="prod-barcode" placeholder="Escanear o escribir código" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none uppercase">
+                                <button type="button" onclick="abrirEscanerCamara('stock')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-2 rounded-lg border border-indigo-200 text-sm font-medium transition flex items-center gap-1 shrink-0" title="Escanear con cámara">
+                                    <i class="fa-solid fa-barcode text-lg"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
@@ -184,6 +201,9 @@
                                 <select id="venta-producto" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
                                     <!-- Dinámico -->
                                 </select>
+                                <button type="button" onclick="abrirEscanerCamara('venta')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-3 py-2 rounded-lg border border-emerald-200 text-sm font-medium transition flex items-center gap-1 shrink-0" title="Escanear Código para Venta">
+                                    <i class="fa-solid fa-barcode text-lg"></i>
+                                </button>
                                 <button type="button" onclick="abrirModalBusquedaVentaProducto()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-2 rounded-lg border border-indigo-200 text-sm font-medium transition flex items-center gap-1 shrink-0" title="Buscar producto con lupa">
                                     <i class="fa-solid fa-magnifying-glass"></i>
                                 </button>
@@ -305,6 +325,29 @@
         </div>
     </div>
 
+    <!-- ================= MODAL ESCÁNER CÁMARA ================= -->
+    <div id="modal-escaner" class="fixed inset-0 bg-black/70 backdrop-blur-xs hidden justify-center items-center z-50 p-4">
+        <div class="bg-white p-6 rounded-xl shadow-xl max-w-md w-full space-y-4">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                    <i class="fa-solid fa-barcode text-indigo-600 mr-2"></i> Escanear Código de Barra
+                </h3>
+                <button type="button" onclick="cerrarEscanerCamara()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Visor del escáner -->
+            <div id="lector-camara" class="w-full overflow-hidden bg-black rounded-lg"></div>
+
+            <p class="text-xs text-center text-gray-500">Apunta con la cámara de tu dispositivo hacia el código de barra del producto.</p>
+            
+            <div class="flex justify-end pt-2">
+                <button type="button" onclick="cerrarEscanerCamara()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium transition">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-500 mt-auto">
         App Inventario Hob &copy; 2026 - Gestión Integral de Productos, Clientes, Ventas y Créditos (L)
     </footer>
@@ -312,7 +355,7 @@
     <!-- LÓGICA JAVASCRIPT -->
     <script>
         let productos = JSON.parse(localStorage.getItem('hob_productos')) || [
-            { id: 1, name: 'BETADER GC 15G', price: 93.00, stock: 1 }
+            { id: 1, name: 'BETADER GC 15G', barcode: '', price: 93.00, stock: 1 }
         ];
         let clientes = JSON.parse(localStorage.getItem('hob_clientes')) || [];
         let ventas = JSON.parse(localStorage.getItem('hob_ventas')) || [];
@@ -320,6 +363,8 @@
 
         let carritoVenta = [];
         let modoModalActual = '';
+        let html5QrCodeScanner = null;
+        let modoEscanerOrigen = ''; // 'stock' o 'venta'
 
         window.onload = function() {
             renderizarProductos();
@@ -347,6 +392,61 @@
             if (pestana === 'reportes') renderizarReportes();
             if (pestana === 'creditos') renderizarCreditos();
             if (pestana === 'ventas') poblarSelectoresVenta();
+        }
+
+        // --- ESCÁNER DE CÁMARA (BARCODE) ---
+        function abrirEscanerCamara(origen) {
+            modoEscanerOrigen = origen;
+            const modal = document.getElementById('modal-escaner');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            if (html5QrCodeScanner) {
+                html5QrCodeScanner.clear();
+            }
+
+            html5QrCodeScanner = new Html5Qrcode("lector-camara");
+            const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+
+            html5QrCodeScanner.start(
+                { facingMode: "environment" },
+                config,
+                onScanSuccess
+            ).catch(err => {
+                alert("No se pudo acceder a la cámara o requiere permisos.");
+                cerrarEscanerCamara();
+            });
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            const codigoLectura = decodedText.trim().toUpperCase();
+            cerrarEscanerCamara();
+
+            if (modoEscanerOrigen === 'stock') {
+                document.getElementById('prod-barcode').value = codigoLectura;
+            } else if (modoEscanerOrigen === 'venta') {
+                const prodEncontrado = productos.find(p => p.barcode && p.barcode.toUpperCase() === codigoLectura);
+                if (prodEncontrado) {
+                    document.getElementById('venta-producto').value = prodEncontrado.id;
+                    agregarAlCarrito();
+                } else {
+                    alert(`No se encontró ningún producto con el código de barra: ${codigoLectura}`);
+                }
+            }
+        }
+
+        function cerrarEscanerCamara() {
+            if (html5QrCodeScanner) {
+                html5QrCodeScanner.stop().then(() => {
+                    html5QrCodeScanner.clear();
+                    html5QrCodeScanner = null;
+                }).catch(() => {
+                    html5QrCodeScanner = null;
+                });
+            }
+            const modal = document.getElementById('modal-escaner');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
         }
 
         // --- MODALES DE BÚSQUEDA ---
@@ -388,7 +488,7 @@
         function filtrarResultadosModal() {
             const filtro = document.getElementById('modal-input-busqueda').value.toLowerCase();
             if (modoModalActual === 'stock' || modoModalActual === 'venta-producto') {
-                renderizarListaModal(productos.filter(p => p.name.toLowerCase().includes(filtro)));
+                renderizarListaModal(productos.filter(p => p.name.toLowerCase().includes(filtro) || (p.barcode && p.barcode.toLowerCase().includes(filtro))));
             } else if (modoModalActual === 'cliente') {
                 renderizarListaModal(clientes.filter(c => c.nombre.toLowerCase().includes(filtro)));
             }
@@ -405,13 +505,13 @@
                 const div = document.createElement('div');
                 div.className = "flex justify-between items-center py-2 px-3 hover:bg-indigo-50 rounded cursor-pointer transition";
                 if (modoModalActual === 'stock') {
-                    div.innerHTML = `<div><span class="font-semibold text-gray-800">${item.name}</span><span class="text-xs text-gray-500 block">Stock: ${item.stock} | L ${item.price.toFixed(2)}</span></div>`;
+                    div.innerHTML = `<div><span class="font-semibold text-gray-800">${item.name}</span><span class="text-xs text-gray-500 block">Cod: ${item.barcode || 'N/A'} | Stock: ${item.stock} | L ${item.price.toFixed(2)}</span></div>`;
                     div.onclick = () => { editarProducto(item.id); cerrarModalBusqueda(); };
                 } else if (modoModalActual === 'cliente') {
                     div.innerHTML = `<div><span class="font-semibold text-gray-800">${item.nombre}</span><span class="text-xs text-gray-500 block">Tel: ${item.telefono || '-'}</span></div>`;
                     div.onclick = () => { editarCliente(item.id); cerrarModalBusqueda(); };
                 } else if (modoModalActual === 'venta-producto') {
-                    div.innerHTML = `<div><span class="font-semibold text-gray-800">${item.name}</span><span class="text-xs text-gray-500 block">Stock: ${item.stock} | L ${item.price.toFixed(2)}</span></div>`;
+                    div.innerHTML = `<div><span class="font-semibold text-gray-800">${item.name}</span><span class="text-xs text-gray-500 block">Cod: ${item.barcode || 'N/A'} | Stock: ${item.stock} | L ${item.price.toFixed(2)}</span></div>`;
                     div.onclick = () => { document.getElementById('venta-producto').value = item.id; cerrarModalBusqueda(); };
                 }
                 contenedor.appendChild(div);
@@ -423,14 +523,15 @@
             e.preventDefault();
             const id = document.getElementById('producto-id').value;
             const name = document.getElementById('prod-nombre').value.trim().toUpperCase();
+            const barcode = document.getElementById('prod-barcode').value.trim().toUpperCase();
             const price = parseFloat(document.getElementById('prod-precio').value);
             const stock = parseInt(document.getElementById('prod-stock').value);
 
             if (id) {
                 const index = productos.findIndex(p => p.id == id);
-                if (index !== -1) productos[index] = { id: Number(id), name, price, stock };
+                if (index !== -1) productos[index] = { id: Number(id), name, barcode, price, stock };
             } else {
-                productos.push({ id: Date.now(), name, price, stock });
+                productos.push({ id: Date.now(), name, barcode, price, stock });
             }
 
             productos.sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
@@ -444,6 +545,7 @@
         function limpiarFormProducto() {
             document.getElementById('form-producto').reset();
             document.getElementById('producto-id').value = '';
+            document.getElementById('prod-barcode').value = '';
             document.getElementById('stock-form-titulo').innerHTML = `<i class="fa-solid fa-box-open text-indigo-600 mr-2"></i> Stock de Productos`;
             document.getElementById('btn-guardar-producto').textContent = "Guardar Producto";
             document.getElementById('btn-cancelar-producto').classList.add('hidden');
@@ -453,7 +555,7 @@
             const contenedor = document.getElementById('contenedor-productos');
             const filtro = document.getElementById('buscar-producto').value.toLowerCase();
             contenedor.innerHTML = '';
-            const filtrados = productos.filter(p => p.name.toLowerCase().includes(filtro));
+            const filtrados = productos.filter(p => p.name.toLowerCase().includes(filtro) || (p.barcode && p.barcode.toLowerCase().includes(filtro)));
             if (filtrados.length === 0) {
                 contenedor.innerHTML = `<p class="col-span-full text-center text-gray-400 py-4">No hay productos disponibles.</p>`;
                 return;
@@ -464,6 +566,7 @@
                 card.innerHTML = `
                     <div>
                         <h4 class="font-bold text-gray-800">${p.name}</h4>
+                        <p class="text-xs text-gray-500">Código: <span class="font-semibold text-gray-700">${p.barcode || 'N/A'}</span></p>
                         <p class="text-sm text-gray-600">Stock: <span class="font-semibold text-indigo-600">${p.stock} unidades</span></p>
                         <p class="text-xs text-gray-500">Precio: L ${p.price.toFixed(2)}</p>
                     </div>
@@ -481,6 +584,7 @@
             if (!p) return;
             document.getElementById('producto-id').value = p.id;
             document.getElementById('prod-nombre').value = p.name;
+            document.getElementById('prod-barcode').value = p.barcode || '';
             document.getElementById('prod-precio').value = p.price;
             document.getElementById('prod-stock').value = p.stock;
             document.getElementById('stock-form-titulo').innerHTML = `<i class="fa-solid fa-pen text-indigo-600 mr-2"></i> Editar Producto`;
@@ -575,7 +679,7 @@
         function poblarSelectoresVenta() {
             const selectProd = document.getElementById('venta-producto');
             const selectCli = document.getElementById('venta-cliente');
-            selectProd.innerHTML = productos.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            selectProd.innerHTML = productos.map(p => `<option value="${p.id}">${p.name} ${p.barcode ? `(${p.barcode})` : ''}</option>`).join('');
             selectCli.innerHTML = '<option value="">GENERAL (CONTADO)</option>' +
                 clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
         }
