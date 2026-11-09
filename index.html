@@ -208,9 +208,6 @@
                                 <button type="button" onclick="abrirEscanerCamara('venta')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-3 py-2 rounded-lg border border-emerald-200 text-sm font-medium transition flex items-center gap-1 shrink-0" title="Escanear Código para Venta">
                                     <i class="fa-solid fa-barcode text-lg"></i>
                                 </button>
-                                <button type="button" onclick="abrirModalBusquedaVentaProducto()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-2 rounded-lg border border-indigo-200 text-sm font-medium transition flex items-center gap-1 shrink-0" title="Buscar producto con lupa">
-                                    <i class="fa-solid fa-magnifying-glass"></i>
-                                </button>
                             </div>
                         </div>
 
@@ -510,16 +507,6 @@
             document.getElementById('modal-input-busqueda').focus();
         }
 
-        function abrirModalBusquedaVentaProducto() {
-            modoModalActual = 'venta-producto';
-            document.getElementById('modal-titulo').textContent = "SELECCIONAR PRODUCTO PARA VENTA";
-            document.getElementById('modal-input-busqueda').value = '';
-            renderizarListaModal(productos);
-            document.getElementById('modal-busqueda').classList.remove('hidden');
-            document.getElementById('modal-busqueda').classList.add('flex');
-            document.getElementById('modal-input-busqueda').focus();
-        }
-
         function cerrarModalBusqueda() {
             document.getElementById('modal-busqueda').classList.remove('flex');
             document.getElementById('modal-busqueda').classList.add('hidden');
@@ -527,7 +514,7 @@
 
         function filtrarResultadosModal() {
             const filtro = document.getElementById('modal-input-busqueda').value.toLowerCase();
-            if (modoModalActual === 'stock' || modoModalActual === 'venta-producto') {
+            if (modoModalActual === 'stock') {
                 renderizarListaModal(productos.filter(p => p.name.toLowerCase().includes(filtro) || (p.barcode && p.barcode.toLowerCase().includes(filtro))));
             } else if (modoModalActual === 'cliente') {
                 renderizarListaModal(clientes.filter(c => c.nombre.toLowerCase().includes(filtro)));
@@ -550,9 +537,6 @@
                 } else if (modoModalActual === 'cliente') {
                     div.innerHTML = `<div><span class="font-semibold text-gray-800">${item.nombre}</span><span class="text-xs text-gray-500 block">Tel: ${item.telefono || '-'}</span></div>`;
                     div.onclick = () => { editarCliente(item.id); cerrarModalBusqueda(); };
-                } else if (modoModalActual === 'venta-producto') {
-                    div.innerHTML = `<div><span class="font-semibold text-gray-800">${item.name}</span><span class="text-xs text-gray-500 block">Cod: ${item.barcode || 'N/A'} | Stock: ${item.stock} | L ${item.price.toFixed(2)}</span></div>`;
-                    div.onclick = () => { document.getElementById('venta-producto').value = item.id; cerrarModalBusqueda(); };
                 }
                 contenedor.appendChild(div);
             });
