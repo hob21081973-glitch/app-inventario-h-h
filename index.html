@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Hyh Ventas</title>
+    <title>App Inventario Hob</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome para iconos -->
@@ -916,4 +916,175 @@
             poblarSelectoresVenta();
 
             renderizarProductos();
-            renderizarV
+            renderizarVentas();
+            renderizarCreditos();
+            alert('¡Venta procesada exitosamente!');
+        }
+
+        function eliminarVenta(ventaId) {
+            if (!confirm('¿Deseas eliminar esta venta? Se devolverá el stock al inventario y se descontará del crédito (si aplica).')) {
+                return;
+            }
+
+            const ventaIndex = ventas.findIndex(v => v.id == ventaId);
+            if (ventaIndex === -1) return;
+            const venta = ventas[ventaIndex];
+
+            if (venta.items && Array.isArray(venta.items)) {
+                venta.items.forEach(item => {
+                    const prod = productos.find(p => p.id == item.productoId);
+                    if (prod) {
+                        prod.stock += item.cantidad;
+                    }
+                });
+                localStorage.setItem('hob_productos', JSON.stringify(productos));
+            }
+
+            if (venta.tipo === 'CREDITO') {
+                const cli = clientes.find(c => c.nombre === venta.cliente);
+                if (cli) {
+                    const cred = creditos.find(cr => cr.clienteId == cli.id);
+                    if (cred) {
+                        cred.saldo -= venta.total;
+                        if (cred.saldo <= 0) {
+                            creditos = creditos.filter(cr => cr.clienteId != cli.id);
+                        }
+                        localStorage.setItem('hob_creditos', JSON.stringify(creditos));
+                    }
+                }
+            }
+
+            ventas.splice(ventaIndex, 1);
+            localStorage.setItem('hob_ventas', JSON.stringify(ventas));
+
+            renderizarProductos();
+            renderizarVentas();
+            renderizarCreditos();
+            renderizarReportes();
+            alert('Venta eliminada y stock revertido con éxito.');
+        }
+
+        function enviarTicketWhatsApp(ventaId) {
+            const v = ventas.find(item => item.id == ventaId);
+            if (!v) return;
+
+            let lineasProductos = [];
+            if (v.items && Array.isArray(v.items)) {
+                v.items.forEach(i => {
+                    lineasProductos.push(`${i.cantidad}X ${i.nombre} ........ L ${(i.precio * i.cantidad).toFixed(2)}`);
+                });
+            } else {
+                lineasProductos.push(`1X ${v.producto} ........ L ${v.total.toFixed(2)}`);
+            }
+
+            const textoTicket = 
+`TICKET DE PEDIDO - APP INVENTARIO HOB
+------------------------------------
+FECHA: ${v.fecha}
+CLIENTE: ${v.cliente}
+TIPO: ${v.tipo}
+------------------------------------
+CANT. PRODUCTO               VALOR
+${lineasProductos.join('\n')}
+------------------------------------
+TOTAL A PAGAR: L ${v.total.toFixed(2)}
+------------------------------------
+¡GRACIAS POR SU PREFERENCIA!`;
+
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textoTicket)}`, '_blank');
+        }
+
+        function renderizarVentas() {
+            const tbody = document.getElementById('tabla-ventas');
+            tbody.innerHTML = '';
+
+            if (ventas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-gray-400 py-6">No hay ventas registradas.</td></tr>`;
+                return;
+            }
+
+            ventas.slice().reverse().forEach(v => {
+                let productosTexto = "";
+                if (v.items && Array.isArray(v.items)) {
+                    productosTexto = v.items.map(i => `${i.cantidad}X ${i.nombre}`).join(', ');
+                } else {
+                    productosTexto = v.producto;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 border-b";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-gray-600 text-xs">${v.fecha}</td>
+                    <td class="py-3 px-4 font-semibold text-gray-800">${productosTexto}</td>
+                    <td class="py-3 px-4 text-gray-600">${v.cliente}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs font-bold ${v.tipo === 'CONTADO' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${v.tipo}</span></td>
+                    <td class="py-3 px-4 font-bold text-indigo-600">L ${v.total.toFixed(2)}</td>
+                    <td class="py-3 px-4 text-center space-x-3">
+                        <button onclick="enviarTicketWhatsApp(${v.id})" class="text-emerald-600 hover:text-emerald-800 transition" title="Enviar Ticket por WhatsApp">
+                            <i class="fa-brands fa-whatsapp text-lg"></i>
+                        </button>
+                        <button onclick="eliminarVenta(${v.id})" class="text-rose-600 hover:text-rose-800 transition" title="Eliminar Venta (Devolver Stock)">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderizarCreditos() {
+            const contenedor = document.getElementById('contenedor-creditos');
+            contenedor.innerHTML = '';
+            if (creditos.length === 0) {
+                contenedor.innerHTML = `<p class="col-span-full text-center text-gray-400 py-4">No hay cuentas por cobrar activas.</p>`;
+                return;
+            }
+
+            creditos.forEach(cr => {
+                const card = document.createElement('div');
+                card.className = "bg-gray-50 border border-gray-200 p-4 rounded-xl space-y-3 shadow-xs";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-gray-800">${cr.clienteNombre}</h4>
+                        <span class="text-xs font-semibold px-2 py-1 bg-amber-100 text-amber-800 rounded-full">PENDIENTE</span>
+                    </div>
+                    <p class="text-sm text-gray-600">Saldo Pendiente: <span class="text-lg font-bold text-rose-600">L ${cr.saldo.toFixed(2)}</span></p>
+                    <button onclick="abonarCredito(${cr.clienteId})" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-1.5 rounded-lg text-sm transition">
+                        Registrar Abono
+                    </button>
+                `;
+                contenedor.appendChild(card);
+            });
+        }
+
+        function abonarCredito(clienteId) {
+            const cr = creditos.find(c => c.clienteId == clienteId);
+            if (!cr) return;
+            const monto = parseFloat(prompt(`Saldo actual: L ${cr.saldo.toFixed(2)}\nIngrese el monto del abono (L):`));
+            if (monto && monto > 0) {
+                cr.saldo -= monto;
+                if (cr.saldo <= 0) {
+                    creditos = creditos.filter(c => c.clienteId != clienteId);
+                    alert('¡Crédito liquidado en su totalidad!');
+                } else {
+                    alert(`Abono realizado. Nuevo saldo: L ${cr.saldo.toFixed(2)}`);
+                }
+                localStorage.setItem('hob_creditos', JSON.stringify(creditos));
+                renderizarCreditos();
+                renderizarReportes();
+            }
+        }
+
+        function renderizarReportes() {
+            const totalInv = productos.reduce((acc, p) => acc + (p.price * p.stock), 0);
+            const totalVen = ventas.reduce((acc, v) => acc + v.total, 0);
+            const totalCred = creditos.reduce((acc, c) => acc + c.saldo, 0);
+
+            document.getElementById('rep-total-inventario').textContent = `L ${totalInv.toFixed(2)}`;
+            document.getElementById('rep-total-ventas').textContent = `L ${totalVen.toFixed(2)}`;
+            document.getElementById('rep-total-creditos').textContent = `L ${totalCred.toFixed(2)}`;
+            renderizarVentas();
+        }
+    </script>
+</body>
+</html>
