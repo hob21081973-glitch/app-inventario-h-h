@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Inventario Hob</title>
+    <title>App Hyh Ventas</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome para iconos -->
@@ -40,7 +40,7 @@
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-2">
             <div class="flex items-center space-x-3">
                 <i class="fa-solid fa-boxes-stacked text-2xl"></i>
-                <h1 class="text-2xl font-bold tracking-wide">App Inventario Hob</h1>
+                <h1 class="text-2xl font-bold tracking-wide">App Hyh Ventas</h1>
             </div>
             <!-- Navegación por las 5 pestañas -->
             <nav class="flex flex-wrap justify-center gap-1 bg-indigo-800 p-1 rounded-lg text-xs md:text-sm">
@@ -338,7 +338,7 @@
                 </button>
             </div>
             <div id="lector-camara" class="w-full overflow-hidden bg-black rounded-lg"></div>
-            <p class="text-xs text-center text-gray-500">Apunta con la cámara de tu dispositivo hacia el código de barra del producto.</p>
+            <p class="text-xs text-center text-gray-500">Apunta con la cámara hacia el código de barra del producto.</p>
             <div class="flex justify-end pt-2">
                 <button type="button" onclick="cerrarEscanerCamara()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium transition">Cancelar</button>
             </div>
@@ -366,7 +366,7 @@
     </div>
 
     <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-500 mt-auto">
-        App Inventario Hob &copy; 2026 - Gestión Integral de Productos, Clientes, Ventas y Créditos (L)
+        App Hyh Ventas &copy; 2026 - Gestión Integral de Productos, Clientes, Ventas y Créditos (L)
     </footer>
 
     <!-- LÓGICA JAVASCRIPT -->
@@ -379,7 +379,6 @@
         let creditos = JSON.parse(localStorage.getItem('hob_creditos')) || [];
 
         let carritoVenta = [];
-        let modoModalActual = '';
         let html5QrCodeScanner = null;
         let modoEscanerOrigen = '';
 
@@ -426,83 +425,61 @@
             if (pestana === 'ventas') poblarSelectoresVenta();
         }
 
-        // --- IMPRESIÓN DE ETIQUETAS ---
-        function abrirModalImprimir(id) {
-            const p = productos.find(item => item.id == id);
-            if (!p) return;
-
-            document.getElementById('lbl-etq-nombre').textContent = p.name;
-            document.getElementById('lbl-etq-precio').textContent = `L ${p.price.toFixed(2)}`;
-            
-            const codigoGenerar = p.barcode && p.barcode.trim() !== '' ? p.barcode : `HOB-${p.id}`;
-
-            document.getElementById('modal-imprimir').classList.remove('hidden');
-            document.getElementById('modal-imprimir').classList.add('flex');
-
-            try {
-                JsBarcode("#barcode-svg", codigoGenerar, {
-                    format: "CODE128",
-                    width: 2,
-                    height: 50,
-                    displayValue: true
-                });
-            } catch(e) {
-                console.error("Error generando código de barras", e);
-            }
-        }
-
-        function cerrarModalImprimir() {
-            document.getElementById('modal-imprimir').classList.remove('flex');
-            document.getElementById('modal-imprimir').classList.add('hidden');
-        }
-
-        function ejecutarImpresion() {
-            const contenido = document.getElementById('etiqueta-print-area').innerHTML;
-            const ventanaImpresion = window.open('', '', 'height=500,width=400');
-            ventanaImpresion.document.write('<html><head><title>Imprimir Etiqueta</title>');
-            ventanaImpresion.document.write('<style>body{font-family:sans-serif; text-align:center; padding:20px;} svg{max-width:100%;}</style>');
-            ventanaImpresion.document.write('</head><body>');
-            ventanaImpresion.document.write(contenido);
-            ventanaImpresion.document.write('</body></html>');
-            ventanaImpresion.document.close();
-            ventanaImpresion.focus();
-            setTimeout(() => {
-                ventanaImpresion.print();
-                ventanaImpresion.close();
-            }, 500);
-        }
-
-        // --- ESCÁNER ---
+        // --- ESCÁNER DE CÁMARA (CORREGIDO Y REINICIABLE) ---
         function abrirEscanerCamara(origen) {
             modoEscanerOrigen = origen;
             const modal = document.getElementById('modal-escaner');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
 
+            // Asegurar limpieza previa antes de iniciar un nuevo escaneo
             if (html5QrCodeScanner) {
-                html5QrCodeScanner.clear();
+                try {
+                    html5QrCodeScanner.clear();
+                } catch (e) {}
+                html5QrCodeScanner = null;
             }
 
-            html5QrCodeScanner = new Html5Qrcode("lector-camara");
-            const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+            setTimeout(() => {
+                html5QrCodeScanner = new Html5Qrcode("lector-camara");
+                const config = { fps: 10, qrbox: { width: 250, height: 150 } };
 
-            html5QrCodeScanner.start(
-                { facingMode: "environment" },
-                config,
-                onScanSuccess
-            ).catch(err => {
-                alert("No se pudo acceder a la cámara o requiere permisos.");
-                cerrarEscanerCamara();
-            });
+                html5QrCodeScanner.start(
+                    { facingMode: "environment" },
+                    config,
+                    onScanSuccess
+                ).catch(err => {
+                    alert("No se pudo acceder a la cámara o requiere permisos.");
+                    cerrarEscanerCamara();
+                });
+            }, 200);
         }
 
         function onScanSuccess(decodedText, decodedResult) {
             const codigoLectura = decodedText.trim().toUpperCase();
-            cerrarEscanerCamara();
+            
+            // Detener y limpiar la cámara inmediatamente al detectar un código
+            if (html5QrCodeScanner) {
+                html5QrCodeScanner.stop().then(() => {
+                    html5QrCodeScanner.clear();
+                    html5QrCodeScanner = null;
+                    cerrarEscanerCamara();
+                    procesarCodigoEscaneado(codigoLectura);
+                }).catch(() => {
+                    html5QrCodeScanner = null;
+                    cerrarEscanerCamara();
+                    procesarCodigoEscaneado(codigoLectura);
+                });
+            } else {
+                cerrarEscanerCamara();
+                procesarCodigoEscaneado(codigoLectura);
+            }
+        }
 
+        function procesarCodigoEscaneado(codigoLectura) {
             if (modoEscanerOrigen === 'stock') {
                 document.getElementById('prod-barcode').value = codigoLectura;
-                verificarBarcodeStock();
+                verificarBarcodeStock(codigoLectura);
             } else if (modoEscanerOrigen === 'venta') {
                 const prodEncontrado = productos.find(p => p.barcode && p.barcode.toUpperCase() === codigoLectura);
                 if (prodEncontrado) {
@@ -515,8 +492,8 @@
             }
         }
 
-        function verificarBarcodeStock() {
-            const barcode = document.getElementById('prod-barcode').value.trim().toUpperCase();
+        function verificarBarcodeStock(codigoForzado = null) {
+            const barcode = codigoForzado || document.getElementById('prod-barcode').value.trim().toUpperCase();
             if (!barcode) return;
 
             const existente = productos.find(p => p.barcode && p.barcode.toUpperCase() === barcode);
@@ -524,6 +501,15 @@
                 reproducirPitidoExito();
                 editarProducto(existente.id);
             } else {
+                // Si no existe, limpia los campos de edición anteriores y posiciona el cursor en el nombre
+                document.getElementById('producto-id').value = '';
+                document.getElementById('prod-nombre').value = '';
+                document.getElementById('prod-precio').value = '';
+                document.getElementById('prod-stock').value = '';
+                document.getElementById('stock-form-titulo').innerHTML = `<i class="fa-solid fa-box-open text-indigo-600 mr-2"></i> Stock de Productos`;
+                document.getElementById('btn-guardar-producto').textContent = "Guardar Producto";
+                document.getElementById('btn-cancelar-producto').classList.add('hidden');
+                
                 document.getElementById('prod-nombre').focus();
             }
         }
@@ -651,7 +637,7 @@
                         <p class="text-xs text-gray-500">Precio: L ${p.price.toFixed(2)}</p>
                     </div>
                     <div class="flex items-center space-x-1">
-                        <button onclick="abrirModalImprimir(${p.id})" class="text-emerald-600 hover:text-emerald-800 p-2" title="Imprimir Etiqueta con Código de Barra"><i class="fa-solid fa-print"></i></button>
+                        <button onclick="abrirModalImprimir(${p.id})" class="text-emerald-600 hover:text-emerald-800 p-2" title="Imprimir Etiqueta"><i class="fa-solid fa-print"></i></button>
                         <button onclick="editarProducto(${p.id})" class="text-indigo-600 hover:text-indigo-800 p-2" title="Editar"><i class="fa-solid fa-pen"></i></button>
                         <button onclick="eliminarProducto(${p.id})" class="text-rose-600 hover:text-rose-800 p-2" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
                     </div>
@@ -681,6 +667,41 @@
                 renderizarProductos();
                 poblarSelectoresVenta();
             }
+        }
+
+        // --- ETIQUETAS ---
+        function abrirModalImprimir(id) {
+            const p = productos.find(item => item.id == id);
+            if (!p) return;
+            document.getElementById('lbl-etq-nombre').textContent = p.name;
+            document.getElementById('lbl-etq-precio').textContent = `L ${p.price.toFixed(2)}`;
+            const codigoGenerar = p.barcode && p.barcode.trim() !== '' ? p.barcode : `HOB-${p.id}`;
+            document.getElementById('modal-imprimir').classList.remove('hidden');
+            document.getElementById('modal-imprimir').classList.add('flex');
+            try {
+                JsBarcode("#barcode-svg", codigoGenerar, { format: "CODE128", width: 2, height: 50, displayValue: true });
+            } catch(e) {}
+        }
+
+        function cerrarModalImprimir() {
+            document.getElementById('modal-imprimir').classList.remove('flex');
+            document.getElementById('modal-imprimir').classList.add('hidden');
+        }
+
+        function ejecutarImpresion() {
+            const contenido = document.getElementById('etiqueta-print-area').innerHTML;
+            const ventanaImpresion = window.open('', '', 'height=500,width=400');
+            ventanaImpresion.document.write('<html><head><title>Imprimir Etiqueta</title>');
+            ventanaImpresion.document.write('<style>body{font-family:sans-serif; text-align:center; padding:20px;} svg{max-width:100%;}</style>');
+            ventanaImpresion.document.write('</head><body>');
+            ventanaImpresion.document.write(contenido);
+            ventanaImpresion.document.write('</body></html>');
+            ventanaImpresion.document.close();
+            ventanaImpresion.focus();
+            setTimeout(() => {
+                ventanaImpresion.print();
+                ventanaImpresion.close();
+            }, 500);
         }
 
         // --- CLIENTES ---
@@ -958,7 +979,7 @@
             }
 
             const textoTicket = 
-`TICKET DE PEDIDO - APP INVENTARIO HOB
+`TICKET DE PEDIDO - App Hyh Ventas
 ------------------------------------
 FECHA: ${v.fecha}
 CLIENTE: ${v.cliente}
