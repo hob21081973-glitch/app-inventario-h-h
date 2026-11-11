@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Hyh Ventas</title>
+    <title>App Inventario Hob</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome para iconos -->
@@ -40,7 +40,7 @@
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-2">
             <div class="flex items-center space-x-3">
                 <i class="fa-solid fa-boxes-stacked text-2xl"></i>
-                <h1 class="text-2xl font-bold tracking-wide">App Hyh Ventas</h1>
+                <h1 class="text-2xl font-bold tracking-wide">App Inventario Hob</h1>
             </div>
             <!-- Navegación por las 5 pestañas -->
             <nav class="flex flex-wrap justify-center gap-1 bg-indigo-800 p-1 rounded-lg text-xs md:text-sm">
@@ -85,13 +85,14 @@
                             <input type="text" id="prod-nombre" required placeholder="EJ. BETADER GC 15G" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none uppercase">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Código de Barra (Opcional)</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Códigos de Barra (Sepáralos con comas si son varios)</label>
                             <div class="flex gap-2">
-                                <input type="text" id="prod-barcode" onchange="verificarBarcodeStock()" placeholder="Escanear o escribir código" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none uppercase">
+                                <input type="text" id="prod-barcode" onchange="verificarBarcodeStock()" placeholder="Ej: 742100, 482802" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none uppercase">
                                 <button type="button" onclick="abrirEscanerCamara('stock')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-2 rounded-lg border border-indigo-200 text-sm font-medium transition flex items-center gap-1 shrink-0" title="Escanear con cámara">
                                     <i class="fa-solid fa-barcode text-lg"></i>
                                 </button>
                             </div>
+                            <span class="text-xs text-gray-500 mt-1 block">Puedes agregar tantos códigos como tenga el producto separados por coma.</span>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
@@ -366,14 +367,25 @@
     </div>
 
     <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-500 mt-auto">
-        App Hyh Ventas &copy; 2026 - Gestión Integral de Productos, Clientes, Ventas y Créditos (L)
+        App Inventario Hob &copy; 2026 - Gestión Integral de Productos, Clientes, Ventas y Créditos (L)
     </footer>
 
     <!-- LÓGICA JAVASCRIPT -->
     <script>
+        // Actualizamos para soportar 'barcodes' (múltiples separados por coma)
         let productos = JSON.parse(localStorage.getItem('hob_productos')) || [
-            { id: 1, name: 'BETADER GC 15G', barcode: '742832001', price: 93.00, stock: 1 }
+            { id: 1, name: 'BETADER GC 15G', barcodes: '742832001, 7421002045425', price: 93.00, stock: 1 }
         ];
+        
+        // Compatibilidad con versiones anteriores si tenían 'barcode' singular guardado
+        productos.forEach(p => {
+            if (!p.barcodes && p.barcode) {
+                p.barcodes = p.barcode;
+            } else if (!p.barcodes) {
+                p.barcodes = '';
+            }
+        });
+
         let clientes = JSON.parse(localStorage.getItem('hob_clientes')) || [];
         let ventas = JSON.parse(localStorage.getItem('hob_ventas')) || [];
         let creditos = JSON.parse(localStorage.getItem('hob_creditos')) || [];
@@ -425,14 +437,13 @@
             if (pestana === 'ventas') poblarSelectoresVenta();
         }
 
-        // --- ESCÁNER DE CÁMARA (CORREGIDO Y REINICIABLE) ---
+        // --- ESCÁNER DE CÁMARA ---
         function abrirEscanerCamara(origen) {
             modoEscanerOrigen = origen;
             const modal = document.getElementById('modal-escaner');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
 
-            // Asegurar limpieza previa antes de iniciar un nuevo escaneo
             if (html5QrCodeScanner) {
                 try {
                     html5QrCodeScanner.clear();
@@ -458,7 +469,6 @@
         function onScanSuccess(decodedText, decodedResult) {
             const codigoLectura = decodedText.trim().toUpperCase();
             
-            // Detener y limpiar la cámara inmediatamente al detectar un código
             if (html5QrCodeScanner) {
                 html5QrCodeScanner.stop().then(() => {
                     html5QrCodeScanner.clear();
@@ -481,7 +491,13 @@
                 document.getElementById('prod-barcode').value = codigoLectura;
                 verificarBarcodeStock(codigoLectura);
             } else if (modoEscanerOrigen === 'venta') {
-                const prodEncontrado = productos.find(p => p.barcode && p.barcode.toUpperCase() === codigoLectura);
+                // Buscamos si el código escaneado coincide con CUALQUIERA de los códigos separados por comas del producto
+                const prodEncontrado = productos.find(p => {
+                    if (!p.barcodes) return false;
+                    const listaCodigos = p.barcodes.split(',').map(c => c.trim().toUpperCase());
+                    return listaCodigos.includes(codigoLectura);
+                });
+
                 if (prodEncontrado) {
                     reproducirPitidoExito();
                     document.getElementById('venta-producto').value = prodEncontrado.id;
@@ -493,15 +509,20 @@
         }
 
         function verificarBarcodeStock(codigoForzado = null) {
-            const barcode = codigoForzado || document.getElementById('prod-barcode').value.trim().toUpperCase();
-            if (!barcode) return;
+            const barcodeInput = codigoForzado || document.getElementById('prod-barcode').value.trim().toUpperCase();
+            if (!barcodeInput) return;
 
-            const existente = productos.find(p => p.barcode && p.barcode.toUpperCase() === barcode);
+            // Verificar si el código ingresado está incluido en las listas de algún producto
+            const existente = productos.find(p => {
+                if (!p.barcodes) return false;
+                const listaCodigos = p.barcodes.split(',').map(c => c.trim().toUpperCase());
+                return listaCodigos.includes(barcodeInput);
+            });
+
             if (existente) {
                 reproducirPitidoExito();
                 editarProducto(existente.id);
             } else {
-                // Si no existe, limpia los campos de edición anteriores y posiciona el cursor en el nombre
                 document.getElementById('producto-id').value = '';
                 document.getElementById('prod-nombre').value = '';
                 document.getElementById('prod-precio').value = '';
@@ -509,7 +530,6 @@
                 document.getElementById('stock-form-titulo').innerHTML = `<i class="fa-solid fa-box-open text-indigo-600 mr-2"></i> Stock de Productos`;
                 document.getElementById('btn-guardar-producto').textContent = "Guardar Producto";
                 document.getElementById('btn-cancelar-producto').classList.add('hidden');
-                
                 document.getElementById('prod-nombre').focus();
             }
         }
@@ -557,7 +577,7 @@
         function filtrarResultadosModal() {
             const filtro = document.getElementById('modal-input-busqueda').value.toLowerCase();
             if (modoModalActual === 'stock') {
-                renderizarListaModal(productos.filter(p => p.name.toLowerCase().includes(filtro) || (p.barcode && p.barcode.toLowerCase().includes(filtro))));
+                renderizarListaModal(productos.filter(p => p.name.toLowerCase().includes(filtro) || (p.barcodes && p.barcodes.toLowerCase().includes(filtro))));
             } else if (modoModalActual === 'cliente') {
                 renderizarListaModal(clientes.filter(c => c.nombre.toLowerCase().includes(filtro)));
             }
@@ -574,7 +594,7 @@
                 const div = document.createElement('div');
                 div.className = "flex justify-between items-center py-2 px-3 hover:bg-indigo-50 rounded cursor-pointer transition";
                 if (modoModalActual === 'stock') {
-                    div.innerHTML = `<div><span class="font-semibold text-gray-800">${item.name}</span><span class="text-xs text-gray-500 block">Cod: ${item.barcode || 'N/A'} | Stock: ${item.stock} | L ${item.price.toFixed(2)}</span></div>`;
+                    div.innerHTML = `<div><span class="font-semibold text-gray-800">${item.name}</span><span class="text-xs text-gray-500 block">Cod(s): ${item.barcodes || 'N/A'} | Stock: ${item.stock} | L ${item.price.toFixed(2)}</span></div>`;
                     div.onclick = () => { editarProducto(item.id); cerrarModalBusqueda(); };
                 } else if (modoModalActual === 'cliente') {
                     div.innerHTML = `<div><span class="font-semibold text-gray-800">${item.nombre}</span><span class="text-xs text-gray-500 block">Tel: ${item.telefono || '-'}</span></div>`;
@@ -589,15 +609,15 @@
             e.preventDefault();
             const id = document.getElementById('producto-id').value;
             const name = document.getElementById('prod-nombre').value.trim().toUpperCase();
-            const barcode = document.getElementById('prod-barcode').value.trim().toUpperCase();
+            const barcodes = document.getElementById('prod-barcode').value.trim().toUpperCase();
             const price = parseFloat(document.getElementById('prod-precio').value);
             const stock = parseInt(document.getElementById('prod-stock').value);
 
             if (id) {
                 const index = productos.findIndex(p => p.id == id);
-                if (index !== -1) productos[index] = { id: Number(id), name, barcode, price, stock };
+                if (index !== -1) productos[index] = { id: Number(id), name, barcodes, price, stock };
             } else {
-                productos.push({ id: Date.now(), name, barcode, price, stock });
+                productos.push({ id: Date.now(), name, barcodes, price, stock });
             }
 
             productos.sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
@@ -621,7 +641,7 @@
             const contenedor = document.getElementById('contenedor-productos');
             const filtro = document.getElementById('buscar-producto').value.toLowerCase();
             contenedor.innerHTML = '';
-            const filtrados = productos.filter(p => p.name.toLowerCase().includes(filtro) || (p.barcode && p.barcode.toLowerCase().includes(filtro)));
+            const filtrados = productos.filter(p => p.name.toLowerCase().includes(filtro) || (p.barcodes && p.barcodes.toLowerCase().includes(filtro)));
             if (filtrados.length === 0) {
                 contenedor.innerHTML = `<p class="col-span-full text-center text-gray-400 py-4">No hay productos disponibles.</p>`;
                 return;
@@ -632,7 +652,7 @@
                 card.innerHTML = `
                     <div>
                         <h4 class="font-bold text-gray-800">${p.name}</h4>
-                        <p class="text-xs text-gray-500">Código: <span class="font-semibold text-gray-700">${p.barcode || 'N/A'}</span></p>
+                        <p class="text-xs text-gray-500">Códigos: <span class="font-semibold text-gray-700">${p.barcodes || 'N/A'}</span></p>
                         <p class="text-sm text-gray-600">Stock: <span class="font-semibold text-indigo-600">${p.stock} unidades</span></p>
                         <p class="text-xs text-gray-500">Precio: L ${p.price.toFixed(2)}</p>
                     </div>
@@ -651,7 +671,7 @@
             if (!p) return;
             document.getElementById('producto-id').value = p.id;
             document.getElementById('prod-nombre').value = p.name;
-            document.getElementById('prod-barcode').value = p.barcode || '';
+            document.getElementById('prod-barcode').value = p.barcodes || '';
             document.getElementById('prod-precio').value = p.price;
             document.getElementById('prod-stock').value = p.stock;
             document.getElementById('stock-form-titulo').innerHTML = `<i class="fa-solid fa-pen text-indigo-600 mr-2"></i> Editar Producto`;
@@ -675,7 +695,11 @@
             if (!p) return;
             document.getElementById('lbl-etq-nombre').textContent = p.name;
             document.getElementById('lbl-etq-precio').textContent = `L ${p.price.toFixed(2)}`;
-            const codigoGenerar = p.barcode && p.barcode.trim() !== '' ? p.barcode : `HOB-${p.id}`;
+            
+            // Toma el primer código de la lista para imprimir el código de barras principal
+            let primerCodigo = p.barcodes ? p.barcodes.split(',')[0].trim() : '';
+            const codigoGenerar = primerCodigo !== '' ? primerCodigo : `HOB-${p.id}`;
+
             document.getElementById('modal-imprimir').classList.remove('hidden');
             document.getElementById('modal-imprimir').classList.add('flex');
             try {
@@ -781,7 +805,7 @@
         function poblarSelectoresVenta() {
             const selectProd = document.getElementById('venta-producto');
             const selectCli = document.getElementById('venta-cliente');
-            selectProd.innerHTML = productos.map(p => `<option value="${p.id}">${p.name} ${p.barcode ? `(${p.barcode})` : ''}</option>`).join('');
+            selectProd.innerHTML = productos.map(p => `<option value="${p.id}">${p.name} ${p.barcodes ? `(${p.barcodes})` : ''}</option>`).join('');
             selectCli.innerHTML = '<option value="">GENERAL (CONTADO)</option>' +
                 clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
         }
@@ -979,7 +1003,7 @@
             }
 
             const textoTicket = 
-`TICKET DE PEDIDO - App Hyh Ventas
+`TICKET DE PEDIDO - APP INVENTARIO HOB
 ------------------------------------
 FECHA: ${v.fecha}
 CLIENTE: ${v.cliente}
